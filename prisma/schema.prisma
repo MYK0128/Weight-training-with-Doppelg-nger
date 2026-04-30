@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String
+  passwordHash   String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  sessions       Session[]
+  workouts       WorkoutLog[]
+  bodyMetrics    BodyMetric[]
+  avatarProfile  AvatarProfile?
+  goals          Goal[]
+  badgeAwards    BadgeAward[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutLog {
+  id            String      @id @default(cuid())
+  userId        String
+  date          DateTime
+  exerciseName  String
+  bodyPart      BodyPart
+  weightKg      Float
+  reps          Int
+  sets          Int
+  memo          String?
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BodyMetric {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime
+  weightKg      Float
+  bodyFatRate   Float?
+  muscleMassKg  Float?
+  chestCm       Float?
+  armCm         Float?
+  legCm         Float?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AvatarProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  level            Int      @default(1)
+  experience       Int      @default(0)
+  power            Float    @default(10)
+  chestStat        Float    @default(10)
+  armStat          Float    @default(10)
+  legStat          Float    @default(10)
+  enduranceStat    Float    @default(10)
+  bodyShapeScore   Float    @default(10)
+  visualTier       Int      @default(1)
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  targetType  String
+  targetValue Float
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BadgeAward {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeKey   String
+  badgeLabel String
+  earnedAt   DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum BodyPart {
+  CHEST
+  BACK
+  SHOULDERS
+  ARMS
+  LEGS
+  CORE
+  FULL_BODY
+  CARDIO
+}
