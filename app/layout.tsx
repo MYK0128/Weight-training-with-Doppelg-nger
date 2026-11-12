@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Muscle Quest",
-  description: "現実の筋トレ成長とアバター成長をつなぐトレーニング可視化アプリ"
+  description: "週間トレーニングの部位別セット数、筋肉量の実測推移と増加シナリオを確認"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

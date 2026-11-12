@@ -5,41 +5,23 @@ import { AuthPanel } from "@/components/auth/auth-panel";
 export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) {
-    redirect("/dashboard");
+    redirect("/plan");
   }
 
   return (
     <main className="auth-shell">
       <div className="hero-card auth-card">
         <section className="auth-visual">
-          <span className="pill">REAL x RPG PROGRESSION</span>
+          <span className="pill">TRAINING / MUSCLE GROWTH</span>
           <h1 className="headline" style={{ marginTop: 18 }}>
-            Lift in real life.
+            筋トレを組む。
             <br />
-            Level up in game.
+            筋肉の変化を追う。
           </h1>
           <p className="subhead">
-            筋トレ記録、身体データ、アバター成長をひとつの流れで見せる MVP です。
-            現実の成長率と、ゲーム内キャラクターの成長率を同じダッシュボードで比較できます。
+            週間メニューを登録して、部位別のセット数と筋肉量の記録を確認できます。
+            これからの筋肉量の変化は、自分で入力したペースで試算できます。
           </p>
-          <div className="stats-strip">
-            <div className="stat-box">
-              <p className="stat-label">記録</p>
-              <p className="stat-value">Workout Log</p>
-            </div>
-            <div className="stat-box">
-              <p className="stat-label">成長</p>
-              <p className="stat-value">Avatar Sync</p>
-            </div>
-            <div className="stat-box">
-              <p className="stat-label">比較</p>
-              <p className="stat-value">Growth Graph</p>
-            </div>
-            <div className="stat-box">
-              <p className="stat-label">継続</p>
-              <p className="stat-value">Streak & Badges</p>
-            </div>
-          </div>
         </section>
         <section className="auth-panel">
           <div className="brand" style={{ marginBottom: 18 }}>

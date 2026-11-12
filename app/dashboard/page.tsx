@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { AvatarCard } from "@/components/dashboard/avatar-card";
@@ -26,7 +27,10 @@ export default async function DashboardPage() {
             <div className="muted">{user.name} の成長ダッシュボード</div>
           </div>
         </div>
-        <LogoutButton />
+        <nav className="plan-nav" aria-label="アプリ内メニュー">
+          <Link className="button-secondary" href="/plan">週間プラン</Link>
+          <LogoutButton />
+        </nav>
       </div>
 
       <section className="hero-card">
@@ -67,15 +71,15 @@ export default async function DashboardPage() {
           <div className="mini-kpis">
             <div className="kpi">
               現実の体重成長率
-              <strong>{dashboard.summary.realWeightGrowthRate}%</strong>
+              <strong>{dashboard.summary.realWeightGrowthRate == null ? "未測定" : `${dashboard.summary.realWeightGrowthRate}%`}</strong>
             </div>
             <div className="kpi">
               現実の筋肉量成長率
-              <strong>{dashboard.summary.muscleGrowthRate}%</strong>
+              <strong>{dashboard.summary.muscleGrowthRate == null ? "未測定" : `${dashboard.summary.muscleGrowthRate}%`}</strong>
             </div>
             <div className="kpi">
-              扱う重量の伸び率
-              <strong>{dashboard.summary.workoutStrengthGrowthRate}%</strong>
+              同種目の重量変化率（平均）
+              <strong>{dashboard.summary.workoutStrengthGrowthRate == null ? "比較待ち" : `${dashboard.summary.workoutStrengthGrowthRate}%`}</strong>
             </div>
             <div className="kpi">
               Avatar Power 成長率
@@ -114,6 +118,7 @@ export default async function DashboardPage() {
       <div className="grid grid-2" style={{ marginTop: 22 }}>
         <section className="panel-card">
           <h2 className="section-title">現実 x アバター比較グラフ</h2>
+          <p className="muted">体重・筋肉量は初回測定、アバターは初期値からの変化率（%）です。体重の増加は筋肉の増加を意味しません。</p>
           <ComparisonChart points={dashboard.chartPoints} />
         </section>
         <section className="panel-card">

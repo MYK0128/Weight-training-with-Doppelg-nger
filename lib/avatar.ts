@@ -1,4 +1,4 @@
-import { BodyMetric, BodyPart, PrismaClient, WorkoutLog } from "@prisma/client";
+import { BodyMetric, BodyPart, Prisma, WorkoutLog } from "@prisma/client";
 
 type StatMap = Record<"chest" | "arms" | "legs" | "endurance", number>;
 
@@ -55,6 +55,7 @@ export function calculateAvatarSnapshot(workouts: WorkoutLog[], bodyMetrics: Bod
 
   const bodyShapeScore =
     10 +
+    (stats.chest + stats.arms + stats.legs - 30) / 3 +
     Math.max(0, realGrowthWeight * 2) +
     Math.max(0, realGrowthMuscle * 5) +
     (latestMetric?.chestCm ?? 0) * 0.03 +
@@ -78,15 +79,15 @@ export function calculateAvatarSnapshot(workouts: WorkoutLog[], bodyMetrics: Bod
   };
 }
 
-export async function recomputeAvatarProfile(db: PrismaClient, userId: string) {
+export async function recomputeAvatarProfile(db: Prisma.TransactionClient, userId: string) {
   const [workouts, bodyMetrics] = await Promise.all([
     db.workoutLog.findMany({
       where: { userId },
-      orderBy: { date: "asc" }
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
     }),
     db.bodyMetric.findMany({
       where: { userId },
-      orderBy: { date: "asc" }
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
     })
   ]);
 
@@ -105,7 +106,7 @@ export async function recomputeAvatarProfile(db: PrismaClient, userId: string) {
   });
 }
 
-export function getAvatarSilhouette(visualTier: number) {
+export function getAvatarSilhouette(visualTier: number, stats?: { chestStat: number; armStat: number; legStat: number }) {
   const tiers = [
     {
       label: "Starter",
@@ -149,5 +150,15 @@ export function getAvatarSilhouette(visualTier: number) {
     }
   ];
 
-  return tiers[Math.min(tiers.length - 1, Math.max(0, visualTier - 1))];
+  const base = tiers[0];
+  const tier = tiers[Math.min(tiers.length - 1, Math.max(0, visualTier - 1))];
+  if (!stats) return tier;
+  // Independent, capped dimensions make the trained body part visible without SVG overflow.
+  const gain = (stat: number, cap: number) => Math.min(cap, Math.max(0, stat - 10) * 0.4);
+  return { ...base, label: tier.label,
+    shoulders: base.shoulders + gain(stats.chestStat, 38),
+    chest: base.chest + gain(stats.chestStat, 30),
+    arms: base.arms + gain(stats.armStat, 11),
+    legs: base.legs + gain(stats.legStat, 13)
+  };
 }

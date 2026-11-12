@@ -1,32 +1,6 @@
 import { prisma } from "./prisma";
 import { calculateAvatarSnapshot, getAvatarSilhouette } from "./avatar";
-
-function growthRate(first: number | null | undefined, last: number | null | undefined) {
-  if (first == null || last == null || first === 0) {
-    return 0;
-  }
-  return Number((((last - first) / first) * 100).toFixed(1));
-}
-
-function calculateStreak(dates: Date[]) {
-  if (dates.length === 0) return 0;
-
-  const normalized = [...new Set(dates.map((date) => new Date(date).toDateString()))]
-    .map((value) => new Date(value))
-    .sort((a, b) => b.getTime() - a.getTime());
-
-  let streak = 1;
-  for (let i = 0; i < normalized.length - 1; i += 1) {
-    const diff = normalized[i].getTime() - normalized[i + 1].getTime();
-    if (diff === 24 * 60 * 60 * 1000) {
-      streak += 1;
-      continue;
-    }
-    break;
-  }
-
-  return streak;
-}
+import { calculateStreak, calculateStrengthGrowth, growthRate } from "./growth";
 
 function deriveBadges(workoutCount: number, streak: number, level: number) {
   const badges = [];
@@ -40,24 +14,22 @@ function deriveBadges(workoutCount: number, streak: number, level: number) {
 }
 
 export async function getDashboardData(userId: string) {
-  const [workouts, bodyMetrics, avatar] = await Promise.all([
+  const [workouts, bodyMetrics] = await Promise.all([
     prisma.workoutLog.findMany({
       where: { userId },
-      orderBy: { date: "asc" }
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
     }),
     prisma.bodyMetric.findMany({
       where: { userId },
-      orderBy: { date: "asc" }
-    }),
-    prisma.avatarProfile.findUnique({
-      where: { userId }
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
     })
   ]);
 
   const latestMetric = bodyMetrics[bodyMetrics.length - 1];
   const firstMetric = bodyMetrics[0];
-  const firstWorkout = workouts[0];
-  const latestWorkout = workouts[workouts.length - 1];
+  // Derive current and historical views with the same rules, including existing profiles.
+  const avatar = calculateAvatarSnapshot(workouts, bodyMetrics);
+  const measuredMuscles = bodyMetrics.filter((metric) => metric.muscleMassKg != null);
 
   const totalVolume = workouts.reduce((sum, workout) => sum + workout.weightKg * workout.reps * workout.sets, 0);
   const streak = calculateStreak(workouts.map((workout) => workout.date));
@@ -73,10 +45,11 @@ export async function getDashboardData(userId: string) {
 
     return {
       date,
-      realWeight: latestMetricAtDate?.weightKg ?? null,
-      muscleMass: latestMetricAtDate?.muscleMassKg ?? null,
-      avatarPower: snapshot.power,
-      bodyShape: snapshot.bodyShapeScore
+      realWeight: growthRate(firstMetric?.weightKg, latestMetricAtDate?.weightKg),
+      muscleMass: growthRate(measuredMuscles[0]?.muscleMassKg,
+        currentMetrics.filter((metric) => metric.muscleMassKg != null).at(-1)?.muscleMassKg),
+      avatarPower: growthRate(10, snapshot.power),
+      bodyShape: growthRate(10, snapshot.bodyShapeScore)
     };
   });
 
@@ -102,8 +75,8 @@ export async function getDashboardData(userId: string) {
     silhouette: getAvatarSilhouette(avatar?.visualTier ?? 1),
     summary: {
       realWeightGrowthRate: growthRate(firstMetric?.weightKg, latestMetric?.weightKg),
-      muscleGrowthRate: growthRate(firstMetric?.muscleMassKg, latestMetric?.muscleMassKg),
-      workoutStrengthGrowthRate: growthRate(firstWorkout?.weightKg, latestWorkout?.weightKg),
+      muscleGrowthRate: growthRate(measuredMuscles[0]?.muscleMassKg, measuredMuscles.at(-1)?.muscleMassKg),
+      workoutStrengthGrowthRate: calculateStrengthGrowth(workouts),
       avatarPowerGrowthRate: growthRate(10, avatar?.power),
       avatarVisualGrowthRate: growthRate(10, avatar?.bodyShapeScore)
     },

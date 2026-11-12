@@ -14,30 +14,30 @@ type AvatarCardProps = {
   } | null;
 };
 
-function AvatarFigure({ visualTier }: { visualTier: number }) {
-  const silhouette = getAvatarSilhouette(visualTier);
+function AvatarFigure({ avatar }: { avatar: NonNullable<AvatarCardProps["avatar"]> }) {
+  const silhouette = getAvatarSilhouette(avatar.visualTier, avatar);
 
   return (
     <svg className="avatar-svg" viewBox="0 0 220 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="avatar silhouette">
-      <circle cx="110" cy="42" r="28" fill="rgba(125,242,187,0.94)" />
+      <circle cx="110" cy="42" r="28" fill="var(--accent)" />
       <path
         d={`M${110 - silhouette.shoulders / 2} 98
             Q110 84 ${110 + silhouette.shoulders / 2} 98
             L${110 + silhouette.chest / 2} 170
             Q110 188 ${110 - silhouette.chest / 2} 170 Z`}
-        fill="rgba(125,242,187,0.92)"
+        fill="var(--accent)"
       />
       <path
         d={`M${110 - silhouette.waist / 2} 170
             Q110 198 ${110 + silhouette.waist / 2} 170
             L${110 + 24} 250
             Q110 262 ${110 - 24} 250 Z`}
-        fill="rgba(45,212,152,0.88)"
+        fill="var(--accent-strong)"
       />
-      <rect x={42} y={108} width={silhouette.arms} height={120} rx={silhouette.arms / 2} fill="rgba(125,242,187,0.9)" />
-      <rect x={220 - 42 - silhouette.arms} y={108} width={silhouette.arms} height={120} rx={silhouette.arms / 2} fill="rgba(125,242,187,0.9)" />
-      <rect x={84} y={246} width={silhouette.legs} height={104} rx={silhouette.legs / 2} fill="rgba(125,242,187,0.9)" />
-      <rect x={220 - 84 - silhouette.legs} y={246} width={silhouette.legs} height={104} rx={silhouette.legs / 2} fill="rgba(125,242,187,0.9)" />
+      <rect x={42} y={108} width={silhouette.arms} height={120} rx={silhouette.arms / 2} fill="var(--accent)" />
+      <rect x={220 - 42 - silhouette.arms} y={108} width={silhouette.arms} height={120} rx={silhouette.arms / 2} fill="var(--accent)" />
+      <rect x={84} y={246} width={silhouette.legs} height={104} rx={silhouette.legs / 2} fill="var(--accent)" />
+      <rect x={220 - 84 - silhouette.legs} y={246} width={silhouette.legs} height={104} rx={silhouette.legs / 2} fill="var(--accent)" />
     </svg>
   );
 }
@@ -70,7 +70,7 @@ export function AvatarCard({ avatar }: AvatarCardProps) {
       </div>
       <div className="avatar-shell">
         <div className="avatar-stage">
-          <AvatarFigure visualTier={activeAvatar.visualTier} />
+          <AvatarFigure avatar={activeAvatar} />
         </div>
         <div className="avatar-meta">
           <div>

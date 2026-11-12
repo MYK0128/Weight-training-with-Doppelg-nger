@@ -59,7 +59,7 @@ export function AuthPanel() {
             try {
               const path = mode === "login" ? "/api/auth/login" : "/api/auth/register";
               await postJSON(path, payload);
-              router.push("/dashboard");
+              router.push("/plan");
               router.refresh();
             } catch (authError) {
               setError(authError instanceof Error ? authError.message : "認証に失敗しました");

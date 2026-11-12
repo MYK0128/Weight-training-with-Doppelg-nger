@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { bodyMetricSchema } from "@/lib/validators";
-import { recomputeAvatarProfile } from "@/lib/avatar";
+import { saveBodyMetric } from "@/lib/records";
 
 export async function POST(request: Request) {
   try {
@@ -17,20 +17,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error.issues[0]?.message ?? "入力内容が不正です" }, { status: 400 });
     }
 
-    const metric = await prisma.bodyMetric.create({
-      data: {
-        userId: user.id,
-        date: new Date(result.data.date),
-        weightKg: result.data.weightKg,
-        bodyFatRate: result.data.bodyFatRate,
-        muscleMassKg: result.data.muscleMassKg,
-        chestCm: result.data.chestCm,
-        armCm: result.data.armCm,
-        legCm: result.data.legCm
-      }
+    const metric = await saveBodyMetric(prisma, {
+      userId: user.id,
+      date: new Date(result.data.date),
+      weightKg: result.data.weightKg,
+      bodyFatRate: result.data.bodyFatRate,
+      muscleMassKg: result.data.muscleMassKg,
+      chestCm: result.data.chestCm,
+      armCm: result.data.armCm,
+      legCm: result.data.legCm
     });
-
-    await recomputeAvatarProfile(prisma, user.id);
 
     return NextResponse.json({ ok: true, metric });
   } catch {

@@ -12,16 +12,16 @@ export function PartVolumeChart({ points }: { points: Point[] }) {
     <div className="chart-wrap">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={points}>
-          <XAxis dataKey="bodyPart" stroke="#96afa8" />
-          <YAxis stroke="#96afa8" />
+          <XAxis dataKey="bodyPart" stroke="var(--muted)" />
+          <YAxis stroke="var(--muted)" />
           <Tooltip
             contentStyle={{
-              background: "#08151d",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--surface-deep)",
+              border: "1px solid var(--line)",
               borderRadius: 16
             }}
           />
-          <Bar dataKey="volume" fill="#7df2bb" radius={[12, 12, 0, 0]} name="総ボリューム" />
+          <Bar dataKey="volume" fill="var(--accent)" radius={[12, 12, 0, 0]} name="総ボリューム" />
         </BarChart>
       </ResponsiveContainer>
     </div>
