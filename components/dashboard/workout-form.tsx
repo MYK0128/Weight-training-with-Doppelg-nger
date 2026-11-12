@@ -1,23 +1,16 @@
+// 種目・重量・回数を入力し、筋トレ記録として保存する。
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-
-const parts = [
-  { value: "CHEST", label: "胸" },
-  { value: "BACK", label: "背中" },
-  { value: "SHOULDERS", label: "肩" },
-  { value: "ARMS", label: "腕" },
-  { value: "LEGS", label: "脚" },
-  { value: "CORE", label: "体幹" },
-  { value: "FULL_BODY", label: "全身" },
-  { value: "CARDIO", label: "有酸素" }
-] as const;
+import { ExerciseMuscles, ExerciseOptions } from "@/components/exercise-picker";
+import { exerciseById } from "@/lib/exercises";
 
 export function WorkoutForm() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [exerciseId, setExerciseId] = useState("");
   const [pending, startTransition] = useTransition();
 
   return (
@@ -40,8 +33,7 @@ export function WorkoutForm() {
               },
               body: JSON.stringify({
                 date: formData.get("date"),
-                exerciseName: formData.get("exerciseName"),
-                bodyPart: formData.get("bodyPart"),
+                exerciseId: formData.get("exerciseId"),
                 weightKg: formData.get("weightKg"),
                 reps: formData.get("reps"),
                 sets: formData.get("sets"),
@@ -56,6 +48,7 @@ export function WorkoutForm() {
             }
 
             form.reset();
+            setExerciseId("");
             setMessage("筋トレ記録を保存しました。アバター成長を再計算しています。");
             router.refresh();
           });
@@ -67,22 +60,15 @@ export function WorkoutForm() {
             <input id="workout-date" name="date" type="date" required />
           </div>
           <div className="field">
-            <label htmlFor="exerciseName">種目名</label>
-            <input id="exerciseName" name="exerciseName" placeholder="Bench Press" required />
+            <label htmlFor="workout-exercise">種目</label>
+            <select id="workout-exercise" name="exerciseId" value={exerciseId} onChange={(event) => setExerciseId(event.target.value)} required>
+              <ExerciseOptions />
+            </select>
+            <ExerciseMuscles exercise={exerciseById.get(exerciseId)} />
           </div>
         </div>
 
         <div className="form-grid two">
-          <div className="field">
-            <label htmlFor="bodyPart">部位</label>
-            <select id="bodyPart" name="bodyPart" defaultValue="CHEST">
-              {parts.map((part) => (
-                <option key={part.value} value={part.value}>
-                  {part.label}
-                </option>
-              ))}
-            </select>
-          </div>
           <div className="field">
             <label htmlFor="weightKg">重量(kg)</label>
             <input id="weightKg" name="weightKg" type="number" step="0.1" min="0" required />
@@ -91,7 +77,7 @@ export function WorkoutForm() {
 
         <div className="form-grid two">
           <div className="field">
-            <label htmlFor="reps">回数</label>
+            <label htmlFor="reps">1セットの回数</label>
             <input id="reps" name="reps" type="number" min="1" required />
           </div>
           <div className="field">

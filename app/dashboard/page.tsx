@@ -1,3 +1,4 @@
+// 筋トレ・身体情報の記録、グラフ、アバターをまとめて表示する。
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
@@ -15,7 +16,8 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const dashboard = await getDashboardData(user.id);
+  const dashboard = await getDashboardData();
+  if (!dashboard) redirect("/login");
 
   return (
     <main className="page-shell">

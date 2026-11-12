@@ -1,3 +1,4 @@
+// 身体測定値とアバターの変化率を折れ線グラフで比較する。
 "use client";
 
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";

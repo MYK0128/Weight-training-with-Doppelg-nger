@@ -1,3 +1,4 @@
+// 全画面で共通のHTML構造、ページ情報、スタイルを設定する。
 import type { Metadata } from "next";
 import "./globals.css";
 

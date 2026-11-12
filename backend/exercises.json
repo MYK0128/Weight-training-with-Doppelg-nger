@@ -1,0 +1,17 @@
+[
+  {"id":"bench-press","name":"ベンチプレス","part":"chest","secondary":["shoulders","arms"],"aliases":["Bench Press","Barbell Bench Press"]},
+  {"id":"dumbbell-press","name":"ダンベルプレス","part":"chest","secondary":["shoulders","arms"],"aliases":["Dumbbell Press","Dumbbell Bench Press"]},
+  {"id":"push-up","name":"腕立て伏せ","part":"chest","secondary":["shoulders","arms","core"],"aliases":["Push-up","Push Up","プッシュアップ"]},
+  {"id":"lat-pulldown","name":"ラットプルダウン","part":"back","secondary":["arms"],"aliases":["Lat Pulldown","Lat Pull Down"]},
+  {"id":"pull-up","name":"懸垂","part":"back","secondary":["arms"],"aliases":["Pull-up","Pull Up","プルアップ"]},
+  {"id":"dumbbell-row","name":"ダンベルロー","part":"back","secondary":["arms","shoulders"],"aliases":["Dumbbell Row","ワンハンドロー"]},
+  {"id":"shoulder-press","name":"ショルダープレス","part":"shoulders","secondary":["arms"],"aliases":["Shoulder Press"]},
+  {"id":"lateral-raise","name":"サイドレイズ","part":"shoulders","secondary":[],"aliases":["Lateral Raise"]},
+  {"id":"dumbbell-curl","name":"ダンベルカール","part":"arms","secondary":[],"aliases":["Dumbbell Curl","アームカール"]},
+  {"id":"triceps-extension","name":"トライセプスエクステンション","part":"arms","secondary":[],"aliases":["Triceps Extension"]},
+  {"id":"squat","name":"スクワット","part":"legs","secondary":["core"],"aliases":["Squat","Barbell Squat","バーベルスクワット"]},
+  {"id":"leg-press","name":"レッグプレス","part":"legs","secondary":[],"aliases":["Leg Press"]},
+  {"id":"lunge","name":"ランジ","part":"legs","secondary":["core"],"aliases":["Lunge","Forward Lunge"]},
+  {"id":"romanian-deadlift","name":"ルーマニアンデッドリフト","part":"legs","secondary":["back","core"],"aliases":["Romanian Deadlift","RDL"]},
+  {"id":"crunch","name":"クランチ","part":"core","secondary":[],"aliases":["Crunch"]}
+]

@@ -1,4 +1,6 @@
-import { prisma } from "./prisma";
+// Fetch records and prepare dashboard summaries and chart series.
+import { apiGet } from "./api";
+import type { BodyMetric, WorkoutLog } from "./record-types";
 import { calculateAvatarSnapshot, getAvatarSilhouette } from "./avatar";
 import { calculateStreak, calculateStrengthGrowth, growthRate } from "./growth";
 
@@ -13,17 +15,14 @@ function deriveBadges(workoutCount: number, streak: number, level: number) {
   return badges;
 }
 
-export async function getDashboardData(userId: string) {
-  const [workouts, bodyMetrics] = await Promise.all([
-    prisma.workoutLog.findMany({
-      where: { userId },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
-    }),
-    prisma.bodyMetric.findMany({
-      where: { userId },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
-    })
-  ]);
+export async function getDashboardData() {
+  const data = await apiGet<{
+    workouts: Array<Omit<WorkoutLog, "date"> & { date: string }>;
+    bodyMetrics: Array<Omit<BodyMetric, "date"> & { date: string }>;
+  }>("/api/dashboard");
+  if (!data) return null;
+  const workouts = data.workouts.map((row) => ({ ...row, date: new Date(row.date) }));
+  const bodyMetrics = data.bodyMetrics.map((row) => ({ ...row, date: new Date(row.date) }));
 
   const latestMetric = bodyMetrics[bodyMetrics.length - 1];
   const firstMetric = bodyMetrics[0];

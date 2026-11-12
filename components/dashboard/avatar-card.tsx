@@ -1,3 +1,4 @@
+// トレーニングで変化したアバターの姿とステータスを表示する。
 import { getAvatarSilhouette } from "@/lib/avatar";
 
 type AvatarCardProps = {

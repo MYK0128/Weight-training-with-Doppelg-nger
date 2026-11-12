@@ -1,3 +1,4 @@
+// ログイン・新規登録画面を表示し、ログイン済みなら週間プランへ案内する。
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { AuthPanel } from "@/components/auth/auth-panel";

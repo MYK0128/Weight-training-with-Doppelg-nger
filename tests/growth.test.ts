@@ -1,6 +1,7 @@
+// 成長率、継続日数、アバターの変化の計算を検証する。
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BodyPart, WorkoutLog } from "@prisma/client";
+import type { WorkoutLog } from "../lib/record-types";
 import { calculateStreak, calculateStrengthGrowth, growthRate } from "../lib/growth";
 import { calculateAvatarSnapshot, getAvatarSilhouette } from "../lib/avatar";
 
@@ -30,11 +31,18 @@ test("missing measurements stay missing and percentages share a common unit", ()
   assert.equal(growthRate(10, 11), 10);
 });
 
+test("canonical exercise names compare with historical English names", () => {
+  assert.equal(calculateStrengthGrowth([
+    { exerciseName: "Bench Press", date: date("2026-10-01"), weightKg: 50 },
+    { exerciseName: "ベンチプレス", date: date("2026-10-02"), weightKg: 55 }
+  ]), 10);
+});
+
 test("training alone changes the trained part and visual score", () => {
   const baseline = calculateAvatarSnapshot([], []);
   const initial = getAvatarSilhouette(baseline.visualTier, baseline);
-  for (const [part, dimension] of [[BodyPart.CHEST, "chest"], [BodyPart.ARMS, "arms"], [BodyPart.LEGS, "legs"]] as const) {
-    const workout = { id: "test", userId: "test", date: date("2026-10-01"), createdAt: date("2026-10-01"),
+  for (const [part, dimension] of [["CHEST", "chest"], ["ARMS", "arms"], ["LEGS", "legs"]] as const) {
+    const workout = { id: "test", date: date("2026-10-01"),
       exerciseName: "test", bodyPart: part, weightKg: 60, reps: 10, sets: 4, memo: null } satisfies WorkoutLog;
     const grown = calculateAvatarSnapshot([workout], []);
     const figure = getAvatarSilhouette(grown.visualTier, grown);

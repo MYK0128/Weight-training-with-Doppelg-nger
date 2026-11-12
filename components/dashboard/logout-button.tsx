@@ -1,3 +1,4 @@
+// セッションを終了し、ログイン画面に戻る。
 "use client";
 
 import { useRouter } from "next/navigation";

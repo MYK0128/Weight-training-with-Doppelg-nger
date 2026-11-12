@@ -1,3 +1,4 @@
+// 体重や筋肉量などの身体測定値を入力して保存する。
 "use client";
 
 import { useRouter } from "next/navigation";

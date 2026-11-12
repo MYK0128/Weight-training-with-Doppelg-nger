@@ -1,19 +1,16 @@
-import { BodyMetric, BodyPart, Prisma, WorkoutLog } from "@prisma/client";
+// Derive avatar stats and proportions from workout and body records.
+import type { BodyMetric, WorkoutLog } from "./record-types";
 
 type StatMap = Record<"chest" | "arms" | "legs" | "endurance", number>;
 
-function mapBodyPart(part: BodyPart): keyof StatMap {
+function mapBodyPart(part: string): keyof StatMap {
   switch (part) {
-    case BodyPart.CHEST:
+    case "CHEST":
       return "chest";
-    case BodyPart.ARMS:
+    case "ARMS":
       return "arms";
-    case BodyPart.LEGS:
+    case "LEGS":
       return "legs";
-    case BodyPart.CARDIO:
-      return "endurance";
-    case BodyPart.FULL_BODY:
-      return "endurance";
     default:
       return "endurance";
   }
@@ -77,33 +74,6 @@ export function calculateAvatarSnapshot(workouts: WorkoutLog[], bodyMetrics: Bod
     bodyShapeScore: Number(bodyShapeScore.toFixed(1)),
     visualTier
   };
-}
-
-export async function recomputeAvatarProfile(db: Prisma.TransactionClient, userId: string) {
-  const [workouts, bodyMetrics] = await Promise.all([
-    db.workoutLog.findMany({
-      where: { userId },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
-    }),
-    db.bodyMetric.findMany({
-      where: { userId },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }]
-    })
-  ]);
-
-  // Keep the persisted avatar profile in sync with the exact same rules used by the dashboard.
-  const snapshot = calculateAvatarSnapshot(workouts, bodyMetrics);
-
-  return db.avatarProfile.upsert({
-    where: { userId },
-    update: {
-      ...snapshot
-    },
-    create: {
-      userId,
-      ...snapshot
-    }
-  });
 }
 
 export function getAvatarSilhouette(visualTier: number, stats?: { chestStat: number; armStat: number; legStat: number }) {

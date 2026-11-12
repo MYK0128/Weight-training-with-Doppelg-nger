@@ -1,3 +1,4 @@
+// ログインと新規登録を切り替え、入力を認証APIへ送る。
 "use client";
 
 import { useState, useTransition } from "react";

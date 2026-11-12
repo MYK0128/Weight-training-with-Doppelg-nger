@@ -1,3 +1,4 @@
+// 部位ごとのトレーニング量を棒グラフで表示する。
 "use client";
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";

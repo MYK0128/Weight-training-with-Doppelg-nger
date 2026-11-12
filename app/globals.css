@@ -1,3 +1,4 @@
+/* Define the shared warm theme and responsive layouts. */
 :root {
   color-scheme: dark;
   --bg: #1a100d;
@@ -398,7 +399,9 @@ textarea {
 .plan-days { display: grid; gap: 10px; margin: 20px 0 28px; }
 .plan-menu-day { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .plan-menu-day small { margin-left: 8px; font-weight: 400; }
-.plan-exercise { display: grid; grid-template-columns: minmax(0, 2fr) minmax(64px, 1fr) minmax(60px, 1fr) auto; gap: 8px; align-items: end; margin-top: 12px; }
+.plan-exercise { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, minmax(60px, 4.5rem)) auto; gap: 8px; align-items: end; margin-top: 12px; }
+.exercise-muscles { font-size: .8rem; }
+.plan-exercise .exercise-muscles { grid-column: 1 / -1; }
 .plan-fieldset .field span { color: var(--muted); font-size: .78rem; }
 .plan-exercise input, .plan-exercise select { padding-inline: 8px; }
 .plan-small-button { padding: 9px 11px; }

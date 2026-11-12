@@ -1,3 +1,6 @@
+// Calculate percentage change, streaks, and strength trends by exercise.
+import { findExerciseByName } from "./exercises";
+
 type StrengthRecord = { exerciseName: string; weightKg: number; date: Date };
 
 export function growthRate(first: number | null | undefined, last: number | null | undefined) {
@@ -22,7 +25,8 @@ export function calculateStreak(dates: Date[], now = new Date()) {
 export function calculateStrengthGrowth(workouts: StrengthRecord[]) {
   const groups = new Map<string, StrengthRecord[]>();
   for (const workout of workouts) {
-    const key = workout.exerciseName.trim().toLowerCase();
+    const selected = findExerciseByName(workout.exerciseName);
+    const key = selected ? `catalog:${selected.id}` : `legacy:${workout.exerciseName.trim().toLowerCase()}`;
     groups.set(key, [...(groups.get(key) ?? []), workout]);
   }
   const rates: number[] = [];

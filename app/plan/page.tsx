@@ -1,26 +1,16 @@
+// 保存済みプランと筋肉量の実測値をGo APIから取得して表示する。
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { analyzeReadings, loadPlan } from "@/lib/simulation";
+import { apiGet } from "@/lib/api";
+import { analyzeReadings, loadPlan, type MuscleReading } from "@/lib/simulation";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { PlanEditor } from "@/components/plan/plan-editor";
 
 export default async function PlanPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const [stored, readings] = await Promise.all([
-    prisma.weeklyPlan.findUnique({ where: { userId: user.id } }),
-    prisma.bodyMetric.findMany({
-      where: { userId: user.id, muscleMassKg: { gt: 0 } },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }],
-      select: { date: true, muscleMassKg: true }
-    })
-  ]);
-  const history = analyzeReadings(readings.flatMap(({ date, muscleMassKg }) =>
-    muscleMassKg == null ? [] : [{ date: date.toISOString().slice(0, 10), kg: muscleMassKg }]));
-  const initial = loadPlan(stored?.settings, history.latest?.kg ?? null);
+  const data = await apiGet<{ settings: unknown; readings: MuscleReading[] }>("/api/weekly-plan");
+  if (!data) redirect("/login");
+  const history = analyzeReadings(data.readings);
+  const initial = loadPlan(data.settings, history.latest?.kg ?? null);
 
   return (
     <main className="page-shell plan-page">

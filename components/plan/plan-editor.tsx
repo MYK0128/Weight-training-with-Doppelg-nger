@@ -1,9 +1,12 @@
+// 曜日ごとの種目を編集し、週間集計と筋肉量の試算を表示する。
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { ExerciseMuscles, ExerciseOptions } from "@/components/exercise-picker";
+import { exerciseById, muscleParts } from "@/lib/exercises";
 import {
-  analyzeMenu, muscleParts, planSchema, simulate, weekdays,
+  analyzeMenu, exerciseRepetitions, planSchema, simulate, weekdays,
   type analyzeReadings, type Exercise, type WeeklyPlan
 } from "@/lib/simulation";
 
@@ -25,6 +28,7 @@ export function PlanEditor({ initial, history }: {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  // 入力中も集計と試算は更新し、保存ボタンを押したときだけAPIに送る。
   const parsed = planSchema.safeParse(plan);
   const menu = analyzeMenu(plan.days);
   const result = simulate(plan);
@@ -74,7 +78,7 @@ export function PlanEditor({ initial, history }: {
       <fieldset className="panel-card plan-fieldset" disabled={saving}>
         <p className="plan-kicker">01 / WEEKLY MENU</p>
         <h2 className="section-title">1週間のメニュー</h2>
-        <p className="muted">鍛える日に種目を追加。セット数にはウォームアップを含めません。</p>
+        <p className="muted">種目を選び、1セットの回数とセット数を入力します。ウォームアップは含めません。</p>
         <div className="plan-days">
           {plan.days.map((items, index) => (
             <section className="plan-menu-day" key={weekdays[index]} aria-label={weekdays[index] + "曜日"}>
@@ -82,23 +86,33 @@ export function PlanEditor({ initial, history }: {
                 <strong>{weekdays[index]}曜 <small className="muted">{items.length ? `${items.length}種目` : "休み"}</small></strong>
                 <button type="button" className="button-secondary plan-small-button" disabled={items.length >= 20}
                   aria-label={weekdays[index] + "曜に種目を追加"}
-                  onClick={() => updateDay(index, [...items, { name: "", part: null, sets: null }])}>＋ 種目</button>
+                  onClick={() => updateDay(index, [...items, { name: "", part: null, reps: null, sets: null }])}>＋ 種目</button>
               </div>
               {items.map((item, i) => {
                 const update = (patch: Partial<Exercise>) => updateDay(index, items.map((entry, j) => j === i ? { ...entry, ...patch } : entry));
                 const prefix = weekdays[index] + `曜の種目${i + 1}`;
+                const selected = item.exerciseId ? exerciseById.get(item.exerciseId) : undefined;
+                const legacy = !selected && item.name ? item.name : undefined;
+                const repetitions = exerciseRepetitions(item);
                 return <div className="plan-exercise" key={i}>
-                  <label className="field"><span>種目名</span><input aria-label={prefix + "の名前"} placeholder="例：スクワット" value={item.name} maxLength={120} required
-                    onChange={(event) => update({ name: event.target.value })} /></label>
-                  <label className="field"><span>主部位</span><select aria-label={prefix + "の主部位"} value={item.part ?? ""}
-                    onChange={(event) => update({ part: (event.target.value || null) as Exercise["part"] })}>
-                    <option value="">未設定</option>
-                    {Object.entries(muscleParts).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  <label className="field"><span>種目</span><select aria-label={prefix} required
+                    value={selected?.id ?? (legacy ? "legacy" : "")}
+                    onChange={(event) => {
+                      const choice = exerciseById.get(event.target.value);
+                      if (choice) update({ exerciseId: choice.id, name: choice.name, part: choice.part });
+                      else if (event.target.value === "") update({ exerciseId: undefined, name: "", part: null });
+                    }}>
+                    <ExerciseOptions legacyName={legacy} />
                   </select></label>
-                  <label className="field"><span>セット</span><input aria-label={prefix + "のセット数"} type="number" min="1" max="100" value={item.sets ?? ""}
+                  <label className="field"><span>回数／セット</span><input aria-label={prefix + "の1セットの回数"} type="number" min="1" max="1000" required={!!selected} value={item.reps ?? ""}
+                    onChange={(event) => update({ reps: Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber })} /></label>
+                  <label className="field"><span>セット数</span><input aria-label={prefix + "のセット数"} type="number" min="1" max="100" required={!!selected} value={item.sets ?? ""}
                     onChange={(event) => update({ sets: Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber })} /></label>
                   <button type="button" className="button-secondary plan-small-button" aria-label={prefix + "を削除"}
                     onClick={() => updateDay(index, items.filter((_, j) => j !== i))}>×</button>
+                  <ExerciseMuscles exercise={selected} />
+                  {legacy && <small className="muted exercise-muscles">以前の記録{item.part ? ` ／ 主：${muscleParts[item.part]}` : " ／ 部位未設定"}</small>}
+                  {repetitions != null && <small className="exercise-muscles">合計 {format(repetitions)} 回</small>}
                 </div>;
               })}
             </section>
@@ -106,10 +120,11 @@ export function PlanEditor({ initial, history }: {
         </div>
         <h3>部位別の週間セット</h3>
         <div className="plan-parts">{menu.parts.map((part) => <div className="kpi" key={part.label}>
-          {part.label}<strong>{part.sets} セット</strong><small className="muted">週 {part.days} 日</small>
+          {part.label}<strong>{part.sets} セット</strong><small className="muted">週 {part.days} 日・{format(part.repetitions)} 回</small>
         </div>)}</div>
-        <p className="muted">週{menu.trainingDays}日・計{menu.sets}セット。主部位のみ集計。
-          {menu.incomplete > 0 && ` 部位かセット数が未入力の${menu.incomplete}種目は集計外です。`}
+        <p className="muted">週{menu.trainingDays}日・部位別計{menu.sets}セット・週間総回数 {format(menu.repetitions)} 回。
+          {menu.incomplete > 0 && ` 部位かセット数が未入力の${menu.incomplete}種目は部位別集計外です。`}
+          {menu.incompleteRepetitions > 0 && ` 総回数は入力済みの種目のみ（未入力 ${menu.incompleteRepetitions}件）。`}
         </p>
         <button type="submit" className="button">{saving ? "保存中…" : "週間プランを保存"}</button>
         {status && <p className="success-text" role="status">{status}</p>}
@@ -147,15 +162,27 @@ export function PlanEditor({ initial, history }: {
         {history.latest && plan.currentMassKg !== history.latest.kg &&
           <button type="button" className="button-secondary plan-latest" onClick={() => change("currentMassKg", history.latest?.kg ?? null)}>最新の実測値を使う</button>}
         <details className="plan-options">
-          <summary>増加幅・目標を設定（任意）</summary>
+          <summary>総回数での補正・増加幅・目標（任意）</summary>
           <div className="form-grid two">
+            <label className="field"><span>基準の週間総回数（回）</span>
+              <input type="number" min="1" max="14000000" value={plan.referenceReps ?? ""}
+                onChange={(event) => change("referenceReps", Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber)} />
+            </label>
             {numericField("月あたりの増加の上限（kg）", "upperPaceKg")}
             {numericField("目標筋肉量（kg）", "targetMassKg")}
           </div>
-          {plan.targetMassKg != null && plan.currentMassKg != null && plan.paceKg != null && parsed.success &&
+          {menu.repetitions > 0 && menu.incompleteRepetitions === 0 &&
+            <button type="button" className="button-secondary plan-latest" onClick={() => change("referenceReps", menu.repetitions)}>
+              現在のメニュー（週{format(menu.repetitions)}回）を基準にする
+            </button>}
+          <p className="muted plan-note">入力した増加ペースを、基準回数をこなした場合のペースとして扱います。予定の週間総回数が基準の半分なら、試算上の増加量も半分になります。基準以上は上乗せしません。</p>
+          {plan.targetMassKg != null && plan.currentMassKg != null && result.paceKg != null && parsed.success &&
             <p>目標まで：{result.earliest === result.latest ? eta(result.latest) :
               `${eta(result.earliest)}〜${result.latest == null ? "下限ペースでは未到達" : eta(result.latest)}`}</p>}
         </details>
+        {plan.referenceReps != null && (result.ratio == null
+          ? <p className="error-text">補正には有効な基準回数と、全種目の回数・セット数が必要です。</p>
+          : <p className="muted">基準 {format(plan.referenceReps)} 回／週に対し、試算へ反映する割合は {format(result.ratio * 100)}% です。</p>)}
         {plan.upperPaceKg != null && (plan.paceKg == null || plan.upperPaceKg < plan.paceKg) &&
           <p className="error-text">上限は基本ペース以上にしてください。</p>}
         <div className="plan-table-wrap">
@@ -170,7 +197,7 @@ export function PlanEditor({ initial, history }: {
             })}</tbody>
           </table>
         </div>
-        <p className="muted plan-note">セット数は練習量の目安です。kgの予測には使いません。シナリオは入力したペースが続くと仮定した計算で、長期ほど実測との差が広がり得ます。測定値は同じ機器・条件で比べてください。</p>
+        <p className="muted plan-note">回数とセット数だけで実際の筋肉の増加量は予測できません。ここでは入力したペースと練習量が続くと仮定して試算します。測定値は同じ機器・条件で比べてください。</p>
       </fieldset>
     </form>
   );
