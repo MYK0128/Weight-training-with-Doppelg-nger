@@ -22,7 +22,20 @@ CREATE TABLE IF NOT EXISTS BodyMetric (
   chestCm REAL, armCm REAL, legCm REAL, createdAt DATETIME NOT NULL
 );
 CREATE INDEX IF NOT EXISTS BodyMetric_user_date ON BodyMetric(userId, date);
+CREATE TABLE IF NOT EXISTS BodyProfile (
+  userId TEXT PRIMARY KEY NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+  heightCm REAL NOT NULL CHECK(heightCm BETWEEN 80 AND 250),
+  weightKg REAL NOT NULL CHECK(weightKg BETWEEN 20 AND 500),
+  bodyFatRate REAL CHECK(bodyFatRate BETWEEN 1 AND 75), updatedAt DATETIME NOT NULL
+);
 CREATE TABLE IF NOT EXISTS WeeklyPlan (
   userId TEXT PRIMARY KEY NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
   settings JSONB NOT NULL, updatedAt DATETIME NOT NULL
+);
+CREATE TABLE IF NOT EXISTS BodyGoal (
+  userId TEXT PRIMARY KEY NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+  targetWeightKg REAL NOT NULL CHECK(targetWeightKg BETWEEN 20 AND 500),
+  targetBodyFatRate REAL NOT NULL CHECK(targetBodyFatRate BETWEEN 1 AND 75),
+  trainingDays INTEGER NOT NULL CHECK(trainingDays IN (2,3)),
+  equipment TEXT NOT NULL CHECK(equipment IN ('gym','dumbbells')), updatedAt DATETIME NOT NULL
 );

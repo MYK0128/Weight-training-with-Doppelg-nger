@@ -102,13 +102,20 @@ func (a *application) authenticated(next func(http.ResponseWriter, *http.Request
 }
 
 func (a *application) register(w http.ResponseWriter, r *http.Request) {
-	var c credentials
+	var c struct {
+		credentials
+		bodyProfileInput
+	}
 	if !decode(w, r, &c) {
 		return
 	}
 	c.Name, c.Email = strings.TrimSpace(c.Name), strings.TrimSpace(c.Email)
-	if !validCredentials(c) || utf8.RuneCountInString(c.Name) < 2 || len(c.Name) > 240 {
+	if !validCredentials(c.credentials) || utf8.RuneCountInString(c.Name) < 2 || len(c.Name) > 240 {
 		problem(w, http.StatusBadRequest, "表示名、メールアドレス、8文字以上のパスワードを確認してください。")
+		return
+	}
+	if !c.bodyProfileInput.valid() {
+		problem(w, http.StatusBadRequest, "身長・体重・体脂肪率を確認してください。")
 		return
 	}
 	hash, err := hashPassword(c.Password)
@@ -133,6 +140,12 @@ func (a *application) register(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fail(w, err)
 		}
+		return
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO BodyProfile(userId,heightCm,weightKg,bodyFatRate,updatedAt) VALUES (?,?,?,?,?)`,
+		u.ID, c.HeightCm.value, c.WeightKg.value, c.BodyFatRate.value, now)
+	if err != nil {
+		fail(w, err)
 		return
 	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO Session(id,token,userId,createdAt,expiresAt) VALUES (?,?,?,?,?)`,

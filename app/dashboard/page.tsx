@@ -1,6 +1,6 @@
 // 筋トレ・身体情報の記録、グラフ、アバターをまとめて表示する。
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { AppNav } from "@/components/app-nav";
 import { getCurrentUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { AvatarCard } from "@/components/dashboard/avatar-card";
@@ -8,7 +8,7 @@ import { WorkoutForm } from "@/components/dashboard/workout-form";
 import { BodyMetricForm } from "@/components/dashboard/body-metric-form";
 import { ComparisonChart } from "@/components/dashboard/comparison-chart";
 import { PartVolumeChart } from "@/components/dashboard/part-volume-chart";
-import { LogoutButton } from "@/components/dashboard/logout-button";
+
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -21,19 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="page-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark">MQ</div>
-          <div>
-            <strong>Muscle Quest</strong>
-            <div className="muted">{user.name} の成長ダッシュボード</div>
-          </div>
-        </div>
-        <nav className="plan-nav" aria-label="アプリ内メニュー">
-          <Link className="button-secondary" href="/plan">週間プラン</Link>
-          <LogoutButton />
-        </nav>
-      </div>
+      <AppNav active="dashboard" />
 
       <section className="hero-card">
         <span className="pill">REAL GROWTH VS AVATAR GROWTH</span>
@@ -132,6 +120,10 @@ export default async function DashboardPage() {
       <div className="grid grid-2" style={{ marginTop: 22 }}>
         <section className="panel-card">
           <h2 className="section-title">最近の筋トレ記録</h2>
+          {dashboard.workouts.length === 0 && <div className="log-item">
+            <p className="muted">まだ筋トレ記録がありません。</p>
+            <a className="plan-text-link" href="#workout-date">最初の筋トレを記録する</a>
+          </div>}
           <div className="log-list">
             {dashboard.workouts.slice(-5).reverse().map((workout) => (
               <div className="log-item" key={workout.id}>
@@ -150,6 +142,10 @@ export default async function DashboardPage() {
 
         <section className="panel-card">
           <h2 className="section-title">最近の身体データ</h2>
+          {dashboard.bodyMetrics.length === 0 && <div className="log-item">
+            <p className="muted">まだ身体データがありません。</p>
+            <a className="plan-text-link" href="#metric-date">最初の身体情報を記録する</a>
+          </div>}
           <div className="log-list">
             {dashboard.bodyMetrics.slice(-5).reverse().map((metric) => (
               <div className="log-item" key={metric.id}>

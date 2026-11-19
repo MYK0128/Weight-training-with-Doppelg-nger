@@ -2,50 +2,43 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState } from "react";
+import { localDate } from "@/lib/local-date";
+import { requestJSON } from "@/lib/client-request";
+import { useSubmission } from "@/components/use-submission";
 import { ExerciseMuscles, ExerciseOptions } from "@/components/exercise-picker";
 import { exerciseById } from "@/lib/exercises";
 
 export function WorkoutForm() {
   const router = useRouter();
+  const [date, setDate] = useState("");
+  useEffect(() => { setDate(localDate()); }, []);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const { pending, error, run } = useSubmission();
   const [exerciseId, setExerciseId] = useState("");
-  const [pending, startTransition] = useTransition();
+
 
   return (
     <section className="panel-card">
       <h2 className="section-title">筋トレ記録</h2>
       <form
         className="form-grid"
+        aria-busy={pending}
         onSubmit={(event) => {
           event.preventDefault();
           setMessage("");
-          setError("");
           const form = event.currentTarget;
           const formData = new FormData(form);
 
-          startTransition(async () => {
-            const response = await fetch("/api/workouts", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
+          void run(async () => {
+            await requestJSON("/api/workouts", {
                 date: formData.get("date"),
                 exerciseId: formData.get("exerciseId"),
                 weightKg: formData.get("weightKg"),
                 reps: formData.get("reps"),
                 sets: formData.get("sets"),
                 memo: formData.get("memo")
-              })
             });
-
-            const data = await response.json();
-            if (!response.ok) {
-              setError(data.error ?? "保存に失敗しました");
-              return;
-            }
 
             form.reset();
             setExerciseId("");
@@ -54,10 +47,11 @@ export function WorkoutForm() {
           });
         }}
       >
+        <fieldset className="submission-fields form-grid" disabled={pending} aria-label="筋トレ記録の入力">
         <div className="form-grid two">
           <div className="field">
             <label htmlFor="workout-date">日付</label>
-            <input id="workout-date" name="date" type="date" required />
+            <input id="workout-date" name="date" type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
           </div>
           <div className="field">
             <label htmlFor="workout-exercise">種目</label>
@@ -94,9 +88,10 @@ export function WorkoutForm() {
         <button className="button" disabled={pending} type="submit">
           {pending ? "保存中..." : "筋トレ記録を保存"}
         </button>
+        </fieldset>
       </form>
-      {error ? <p className="error-text">{error}</p> : null}
-      {message ? <p className="success-text">{message}</p> : null}
+      {error ? <p role="alert" className="error-text">{error}</p> : null}
+      {message ? <p role="status" className="success-text">{message}</p> : null}
     </section>
   );
 }
