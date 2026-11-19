@@ -1,9 +1,9 @@
 // 保存済みプランと筋肉量の実測値をGo APIから取得して表示する。
-import Link from "next/link";
+import { AppNav } from "@/components/app-nav";
 import { redirect } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { analyzeReadings, loadPlan, type MuscleReading } from "@/lib/simulation";
-import { LogoutButton } from "@/components/dashboard/logout-button";
+
 import { PlanEditor } from "@/components/plan/plan-editor";
 
 export default async function PlanPage() {
@@ -14,17 +14,11 @@ export default async function PlanPage() {
 
   return (
     <main className="page-shell plan-page">
-      <header className="topbar">
-        <div className="brand"><span className="brand-mark">MQ</span><strong>Muscle Quest</strong></div>
-        <nav className="plan-nav" aria-label="アプリ内メニュー">
-          <Link className="button-secondary" href="/dashboard">記録・アバター</Link>
-          <LogoutButton />
-        </nav>
-      </header>
+      <AppNav active="plan" />
       <section className="hero-card plan-hero">
         <span className="pill">WEEKLY PLAN / 01</span>
-        <h1 className="headline">筋トレを組む。<br />筋肉の変化を追う。</h1>
-        <p className="subhead">週間メニューのセット数を確認し、実測の筋肉量とこれからの増加シナリオを見比べましょう。</p>
+        <h1 className="headline">週間トレーニング</h1>
+        <p className="subhead">曜日ごとに種目・回数・セット数を決めて、1週間のメニューを保存しましょう。</p>
       </section>
       <PlanEditor initial={initial} history={history} />
     </main>

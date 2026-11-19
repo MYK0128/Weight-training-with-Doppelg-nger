@@ -2,6 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import { requestJSON } from "@/lib/client-request";
+import { useSubmission } from "@/components/use-submission";
 import Link from "next/link";
 import { ExerciseMuscles, ExerciseOptions } from "@/components/exercise-picker";
 import { exerciseById, muscleParts } from "@/lib/exercises";
@@ -27,7 +29,7 @@ export function PlanEditor({ initial, history }: {
   const [plan, setPlan] = useState(initial);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const { pending: saving, error: requestError, run } = useSubmission();
   // 入力中も集計と試算は更新し、保存ボタンを押したときだけAPIに送る。
   const parsed = planSchema.safeParse(plan);
   const menu = analyzeMenu(plan.days);
@@ -47,22 +49,15 @@ export function PlanEditor({ initial, history }: {
 
   async function save() {
     setError("");
+    setStatus("");
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "入力を確認してください。");
       return;
     }
-    setSaving(true);
-    try {
-      const response = await fetch("/api/weekly-plan", {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.data)
-      });
-      if (!response.ok) throw new Error("save failed");
+    await run(async () => {
+      await requestJSON("/api/weekly-plan", parsed.data, "PUT");
       setStatus("週間プランを保存しました。");
-    } catch {
-      setError("保存できませんでした。もう一度お試しください。");
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
   function numericField(label: string, key: "currentMassKg" | "targetMassKg" | "paceKg" | "upperPaceKg") {
@@ -74,7 +69,7 @@ export function PlanEditor({ initial, history }: {
   }
 
   return (
-    <form className="plan-grid" onSubmit={(event) => { event.preventDefault(); void save(); }}>
+    <form className="plan-grid" aria-busy={saving} onSubmit={(event) => { event.preventDefault(); void save(); }}>
       <fieldset className="panel-card plan-fieldset" disabled={saving}>
         <p className="plan-kicker">01 / WEEKLY MENU</p>
         <h2 className="section-title">1週間のメニュー</h2>
@@ -128,11 +123,12 @@ export function PlanEditor({ initial, history }: {
         </p>
         <button type="submit" className="button">{saving ? "保存中…" : "週間プランを保存"}</button>
         {status && <p className="success-text" role="status">{status}</p>}
-        {error && <p className="error-text" role="alert">{error}</p>}
+        {(error || requestError) && <p className="error-text" role="alert">{error || requestError}</p>}
       </fieldset>
 
-      <fieldset className="panel-card plan-fieldset" disabled={saving}>
-        <p className="plan-kicker">02 / MUSCLE MASS</p>
+      <details className="panel-card plan-scenario" onInvalidCapture={(event) => { event.currentTarget.open = true; }}>
+        <summary>筋肉量の記録・試算（任意）</summary>
+        <fieldset className="submission-fields plan-fieldset" disabled={saving} aria-label="筋肉量の記録・試算">
         <h2 className="section-title">筋肉量の変化</h2>
         <div className="plan-goal">
           <span>最新の実測</span>
@@ -198,7 +194,8 @@ export function PlanEditor({ initial, history }: {
           </table>
         </div>
         <p className="muted plan-note">回数とセット数だけで実際の筋肉の増加量は予測できません。ここでは入力したペースと練習量が続くと仮定して試算します。測定値は同じ機器・条件で比べてください。</p>
-      </fieldset>
+        </fieldset>
+      </details>
     </form>
   );
 }

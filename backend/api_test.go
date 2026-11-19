@@ -50,14 +50,14 @@ func TestRecordAndPlanLifecycle(t *testing.T) {
 	api := a.routes()
 	request(t, api, "GET", "/api/weekly-plan", "", nil, 401)
 	first := request(t, api, "POST", "/api/auth/register",
-		`{"name":"First","email":"first@example.com","password":"a-good-test-password"}`, nil, 200).Result().Cookies()[0]
+		`{"name":"First","email":"first@example.com","password":"a-good-test-password","heightCm":174,"weightKg":68.4}`, nil, 200).Result().Cookies()[0]
 	second := request(t, api, "POST", "/api/auth/register",
-		`{"name":"Second","email":"second@example.com","password":"another-test-password"}`, nil, 200).Result().Cookies()[0]
+		`{"name":"Second","email":"second@example.com","password":"another-test-password","heightCm":"180","weightKg":"75"}`, nil, 200).Result().Cookies()[0]
 	if !first.HttpOnly || first.SameSite != http.SameSiteLaxMode || first.Path != "/" {
 		t.Fatal("session cookie flags are not set")
 	}
 	request(t, api, "POST", "/api/auth/register",
-		`{"name":"First","email":"first@example.com","password":"a-good-test-password"}`, nil, 409)
+		`{"name":"First","email":"first@example.com","password":"a-good-test-password","heightCm":174,"weightKg":68.4}`, nil, 409)
 	request(t, api, "POST", "/api/workouts",
 		`{"date":"2026-11-12","exerciseId":"squat","exerciseName":"Free text","bodyPart":"CHEST","weightKg":"60","reps":"8","sets":"3"}`, first, 200)
 	request(t, api, "POST", "/api/workouts",

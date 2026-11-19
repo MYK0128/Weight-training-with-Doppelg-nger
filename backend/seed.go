@@ -25,10 +25,15 @@ func (a *application) seedDemo() error {
 	if err != nil {
 		return err
 	}
+	_, err = tx.Exec(`INSERT INTO BodyProfile(userId,heightCm,weightKg,bodyFatRate,updatedAt) VALUES (?,174,68.4,22,?)`,
+		id, now.UnixMilli())
+	if err != nil {
+		return err
+	}
 	for i, days := range []int{42, 21, 0} {
 		date := today.AddDate(0, 0, -days).UnixMilli()
-		_, err = tx.Exec(`INSERT INTO BodyMetric(id,userId,date,weightKg,muscleMassKg,createdAt) VALUES (?,?,?,?,?,?)`,
-			randomHex(16), id, date, 68.4+float64(i)*0.4, 53.2+float64(i)*0.3, now.UnixMilli())
+		_, err = tx.Exec(`INSERT INTO BodyMetric(id,userId,date,weightKg,bodyFatRate,muscleMassKg,createdAt) VALUES (?,?,?,?,?,?,?)`,
+			randomHex(16), id, date, 68.4+float64(i)*0.4, 22-float64(i)*0.5, 53.2+float64(i)*0.3, now.UnixMilli())
 		if err != nil {
 			return err
 		}
