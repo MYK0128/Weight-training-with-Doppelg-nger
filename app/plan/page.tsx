@@ -18,9 +18,8 @@ export default async function PlanPage() {
       <section className="hero-card plan-hero">
         <span className="pill">WEEKLY PLAN / 01</span>
         <h1 className="headline">週間トレーニング</h1>
-        <p className="subhead">曜日ごとに種目・回数・セット数を決めて、1週間のメニューを保存しましょう。</p>
       </section>
-      <PlanEditor initial={initial} history={history} />
+      <PlanEditor initial={initial} latestKg={history.latest?.kg ?? null} />
     </main>
   );
 }

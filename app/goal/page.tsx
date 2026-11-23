@@ -24,7 +24,6 @@ export default async function GoalPage() {
     <section className="hero-card plan-hero">
       <span className="pill">BODY GOAL / 02</span>
       <h1 className="headline">なりたい姿を、<br />今日の一歩に。</h1>
-      <p className="subhead">現在と目標の差を見ながら、続けられる全身トレーニングを考えましょう。目標はいつでも見直せます。</p>
     </section>
     {data && data[0] && data[1]
       ? <GoalEditor current={currentBody(data[0])} initial={data[1].goal} />

@@ -45,23 +45,8 @@ export function GoalEditor({ current, initial }: { current: CurrentBody; initial
   }
 
   return <div className={styles.stack}>
-    <div className={styles.layout}>
-      <section className={`panel-card ${styles.current}`} aria-labelledby="goal-current-heading" data-testid="goal-current">
-        <p className="plan-kicker">01 / CURRENT</p>
-        <h2 className="section-title" id="goal-current-heading">いまの身体</h2>
-        <p className="muted">{current.date ? `測定日：${current.date.slice(0, 10)}` : '身体情報に登録した値'}<br />最新の測定がある場合は、その体重と体脂肪率をセットで使用します。</p>
-        <dl className={styles.metrics}>
-          <div><dt>体重</dt><dd data-testid="goal-current-weight">{format(current.weightKg, 'kg')}</dd></div>
-          <div><dt>体脂肪率</dt><dd data-testid="goal-current-fat">{format(current.bodyFatRate, '%')}</dd></div>
-          <div><dt>身長</dt><dd>{format(current.heightCm, 'cm')}</dd></div>
-        </dl>
-        {(current.weightKg == null || current.bodyFatRate == null || current.heightCm == null) && <p className={styles.notice} data-testid="goal-missing-profile">比較に必要な身体情報が揃っていません。体脂肪率が不明なときは、別の測定日の値で補わず「未登録」として扱います。</p>}
-        <Link className="plan-text-link" href="/#body-profile">身体情報を入力・確認する →</Link>
-        {current.date && current.bodyFatRate == null && <p><Link className="plan-text-link" href="/dashboard#metric-date">体脂肪率を含む新しい測定を記録する →</Link></p>}
-      </section>
-
       <form className="panel-card" onSubmit={event => { event.preventDefault(); void save(); }} noValidate aria-busy={pending} data-testid="goal-form">
-        <p className="plan-kicker">02 / TARGET</p>
+        <p className="plan-kicker">01 / TARGET</p>
         <h2 className="section-title">目指す身体</h2>
         <p className="muted">{saved ? '保存した目標を見直せます。' : '目標はまだ保存されていません。数値と環境を入力してみましょう。'}</p>
         <fieldset disabled={pending} className={`submission-fields ${styles.fields}`}>
@@ -85,10 +70,12 @@ export function GoalEditor({ current, initial }: { current: CurrentBody; initial
         {error && <p className="error-text" role="alert" data-testid="goal-save-error">{error}</p>}
         {status && <p className="success-text" role="status" data-testid="goal-save-success">{status}</p>}
       </form>
-    </div>
 
     <section className="panel-card" aria-labelledby="goal-difference-heading" data-testid="goal-comparison">
-      <div className="row-between"><div><p className="plan-kicker">03 / DIFFERENCE</p><h2 className="section-title" id="goal-difference-heading">現在 → 目標の差</h2></div><span className={styles.previewTag}>{dirty ? '入力中のプレビュー' : '保存済みの目標'}</span></div>
+      <div className="row-between"><div><p className="plan-kicker">02 / DIFFERENCE</p><h2 className="section-title" id="goal-difference-heading">現在 → 目標の差</h2></div><span className={styles.previewTag}>{dirty ? '入力中のプレビュー' : '保存済みの目標'}</span></div>
+        {(current.weightKg == null || current.bodyFatRate == null || current.heightCm == null) && <p className={styles.notice} data-testid="goal-missing-profile">比較に必要な身体情報が揃っていません。体脂肪率が不明なときは、別の測定日の値で補わず「未登録」として扱います。</p>}
+        <Link className="plan-text-link" href="/#body-profile">身体情報を入力・確認する →</Link>
+        {current.date && current.bodyFatRate == null && <p><Link className="plan-text-link" href="/dashboard#metric-date">体脂肪率を含む新しい測定を記録する →</Link></p>}
       {comparison ? <>
         <div className={styles.deltaGrid}>
           <div className="kpi">体重の差<strong data-testid="goal-weight-delta">{signed(comparison.weightDeltaKg, 'kg')}</strong></div>
@@ -104,7 +91,7 @@ export function GoalEditor({ current, initial }: { current: CurrentBody; initial
     </section>
 
     <section className={`panel-card ${reasoning?.focus === 'caution' ? styles.caution : ''}`} aria-labelledby="goal-reasoning-heading" data-testid="goal-reasoning" data-focus={reasoning?.focus ?? 'empty'}>
-      <p className="plan-kicker">04 / NEXT STEP</p><h2 className="section-title" id="goal-reasoning-heading">{reasoning?.label ?? '目標に合わせた、次の一歩'}</h2>
+      <p className="plan-kicker">03 / NEXT STEP</p><h2 className="section-title" id="goal-reasoning-heading">{reasoning?.label ?? '目標に合わせた、次の一歩'}</h2>
       {!reasoning ? <p className="muted">有効な目標を入力するとここに表示します。入力がない状態では、減量や筋力向上の方向を推測しません。</p> : <>
         <p className={styles.body} data-testid="goal-focus-description">{reasoning.description}</p>
         {reasoning.focus === 'general' && <Link href="/#body-profile" className="plan-text-link">身体情報を入力する →</Link>}

@@ -30,7 +30,7 @@ export function ComparisonChart({ points }: { points: ChartPoint[] }) {
             }}
           />
           <Line type="monotone" dataKey="realWeight" stroke="var(--chart-weight)" strokeWidth={3} dot={{ r: 4 }} name="現実の体重" />
-          <Line type="monotone" dataKey="muscleMass" stroke="var(--chart-muscle)" strokeWidth={3} dot={{ r: 4 }} name="筋肉量" />
+          <Line type="monotone" dataKey="muscleMass" stroke="var(--chart-muscle)" strokeDasharray="12 3 2 3" strokeWidth={3} dot={{ r: 4 }} name="筋肉量" />
           <Line type="monotone" dataKey="avatarPower" stroke="var(--chart-power)" strokeDasharray="8 4" strokeWidth={3} dot={{ r: 4 }} name="Avatar Power" />
           <Line type="monotone" dataKey="bodyShape" stroke="var(--chart-shape)" strokeDasharray="2 4" strokeWidth={3} dot={{ r: 4 }} name="Body Shape" />
         </LineChart>

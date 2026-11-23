@@ -14,11 +14,10 @@ export default async function LoginPage() {
       <div className="hero-card auth-card">
         <section className="auth-visual">
           <span className="pill">TRAINING / BODY GOALS</span>
-          <h1 className="headline" style={{ marginTop: 18 }}>自分の身体から、<br />最初の一歩を。</h1>
-          <p className="subhead">身体データでアバターを作り、週間メニューと目標を決めましょう。</p>
+          <h1 className="headline" style={{ marginTop: "var(--space-2)" }}>自分の身体から、<br />最初の一歩を。</h1>
         </section>
         <section className="auth-panel">
-          <div className="brand" style={{ marginBottom: 18 }}>
+          <div className="brand" style={{ marginBottom: "var(--space-2)" }}>
             <div className="brand-mark">MQ</div>
             <div>
               <strong>Muscle Quest</strong>

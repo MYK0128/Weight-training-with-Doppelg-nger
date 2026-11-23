@@ -9,7 +9,7 @@ import { ExerciseMuscles, ExerciseOptions } from "@/components/exercise-picker";
 import { exerciseById, muscleParts } from "@/lib/exercises";
 import {
   analyzeMenu, exerciseRepetitions, planSchema, simulate, weekdays,
-  type analyzeReadings, type Exercise, type WeeklyPlan
+  type Exercise, type WeeklyPlan
 } from "@/lib/simulation";
 
 const number = new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 2 });
@@ -23,8 +23,8 @@ const eta = (months: number | null) => months == null ? "到達しない" :
 const range = (low: number, high: number, formatter = format) =>
   formatter(low) === formatter(high) ? formatter(low) : `${formatter(low)}〜${formatter(high)}`;
 
-export function PlanEditor({ initial, history }: {
-  initial: WeeklyPlan; history: ReturnType<typeof analyzeReadings>;
+export function PlanEditor({ initial, latestKg }: {
+  initial: WeeklyPlan; latestKg: number | null;
 }) {
   const [plan, setPlan] = useState(initial);
   const [status, setStatus] = useState("");
@@ -127,27 +127,10 @@ export function PlanEditor({ initial, history }: {
       </fieldset>
 
       <details className="panel-card plan-scenario" onInvalidCapture={(event) => { event.currentTarget.open = true; }}>
-        <summary>筋肉量の記録・試算（任意）</summary>
-        <fieldset className="submission-fields plan-fieldset" disabled={saving} aria-label="筋肉量の記録・試算">
-        <h2 className="section-title">筋肉量の変化</h2>
-        <div className="plan-goal">
-          <span>最新の実測</span>
-          <strong>{history.latest ? `${format(history.latest.kg)} kg` : "測定記録なし"}</strong>
-          {history.latest && <span>{history.latest.date} · 最新測定までの90日間に {history.readings.length}日分</span>}
-          {history.deltaKg != null && <span>{history.spanDays}日間の実測差：{signed(history.deltaKg)} kg</span>}
-          <span>{history.paceKg == null ? "月あたりの傾向は、4週間以上にわたる3日分以上の記録から表示します。"
-            : `実測の傾向：月あたり ${signed(history.paceKg)} kg（過去の測定値から計算）`}</span>
-        </div>
-        {history.readings.length > 0 && <details className="plan-options">
-          <summary>実測の履歴を見る</summary>
-          <table className="plan-table">
-            <thead><tr><th scope="col">測定日</th><th scope="col">筋肉量（kg）</th></tr></thead>
-            <tbody>{history.readings.slice().reverse().map(({ date, kg }) =>
-              <tr key={date}><th scope="row">{date}</th><td>{format(kg)}</td></tr>)}</tbody>
-          </table>
-        </details>}
-        <Link href="/dashboard" className="plan-text-link">身体情報を記録する</Link>
-        <h3>増加シナリオ</h3>
+        <summary>筋肉量の試算（任意）</summary>
+        <fieldset className="submission-fields plan-fieldset" disabled={saving} aria-label="筋肉量の試算">
+        <h2 className="section-title">増加シナリオ</h2>
+        <Link href="/dashboard#muscle-history" className="plan-text-link">実測の推移を確認</Link>
         <div className="form-grid two">
           {numericField("現在の筋肉量（kg）", "currentMassKg")}
           {numericField("仮定する月あたりの増加（kg）", "paceKg")}
@@ -155,8 +138,8 @@ export function PlanEditor({ initial, history }: {
             {Array.from({ length: 60 }, (_, i) => i + 1).map((month) => <option key={month} value={month}>{duration(month)}</option>)}
           </select></label>
         </div>
-        {history.latest && plan.currentMassKg !== history.latest.kg &&
-          <button type="button" className="button-secondary plan-latest" onClick={() => change("currentMassKg", history.latest?.kg ?? null)}>最新の実測値を使う</button>}
+        {latestKg != null && plan.currentMassKg !== latestKg &&
+          <button type="button" className="button-secondary plan-latest" onClick={() => change("currentMassKg", latestKg)}>最新の実測値を使う</button>}
         <details className="plan-options">
           <summary>総回数での補正・増加幅・目標（任意）</summary>
           <div className="form-grid two">

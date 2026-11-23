@@ -3,12 +3,15 @@ import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
 import { getCurrentUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
-import { AvatarCard } from "@/components/dashboard/avatar-card";
+import { MuscleHistory } from "@/components/dashboard/muscle-history";
 import { WorkoutForm } from "@/components/dashboard/workout-form";
 import { BodyMetricForm } from "@/components/dashboard/body-metric-form";
 import { ComparisonChart } from "@/components/dashboard/comparison-chart";
 import { PartVolumeChart } from "@/components/dashboard/part-volume-chart";
-
+const dashboardDate = new Intl.DateTimeFormat("ja-JP", {
+  dateStyle: "full",
+  timeZone: "Asia/Tokyo"
+});
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -18,22 +21,16 @@ export default async function DashboardPage() {
 
   const dashboard = await getDashboardData();
   if (!dashboard) redirect("/login");
+  const now = new Date();
 
   return (
     <main className="page-shell">
       <AppNav active="dashboard" />
 
       <section className="hero-card">
-        <span className="pill">REAL GROWTH VS AVATAR GROWTH</span>
-        <h1 className="headline" style={{ marginTop: 18 }}>
-          現実の努力を、
-          <br />
-          キャラクター成長に変換する。
+        <h1 className="dashboard-date">
+          <time dateTime={now.toISOString()}>{dashboardDate.format(now)}</time>
         </h1>
-        <p className="subhead">
-          筋トレ記録と身体データから、アバターの見た目・能力値・レベルを算出。
-          現実の成長率とゲーム内成長率を並べて、継続のモチベーションを高めます。
-        </p>
         <div className="stats-strip">
           <div className="stat-box">
             <p className="stat-label">連続記録日数</p>
@@ -43,19 +40,11 @@ export default async function DashboardPage() {
             <p className="stat-label">累計トレーニング量</p>
             <p className="stat-value">{dashboard.totalVolume}</p>
           </div>
-          <div className="stat-box">
-            <p className="stat-label">Avatar Level</p>
-            <p className="stat-value">{dashboard.avatar?.level ?? 1}</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-label">最新体重</p>
-            <p className="stat-value">{dashboard.latestMetric?.weightKg ?? "-"}kg</p>
-          </div>
         </div>
       </section>
 
-      <div className="grid grid-2" style={{ marginTop: 22 }}>
-        <AvatarCard avatar={dashboard.avatar} />
+      <div className="grid grid-2" style={{ marginTop: "var(--space-3)" }}>
+        <MuscleHistory readings={dashboard.bodyMetrics.flatMap(metric => metric.muscleMassKg == null ? [] : [{ date: metric.date.toISOString().slice(0, 10), kg: metric.muscleMassKg }])} />
         <section className="panel-card">
           <h2 className="section-title">成長比較サマリー</h2>
           <div className="mini-kpis">
@@ -84,7 +73,7 @@ export default async function DashboardPage() {
               <strong>{dashboard.badges.length}</strong>
             </div>
           </div>
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: "var(--space-2)" }}>
             <div className="badge-list">
               {dashboard.badges.length > 0 ? (
                 dashboard.badges.map((badge) => (
@@ -100,12 +89,12 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <div className="grid grid-2" style={{ marginTop: 22 }}>
+      <div className="grid grid-2" style={{ marginTop: "var(--space-3)" }}>
         <WorkoutForm />
         <BodyMetricForm />
       </div>
 
-      <div className="grid grid-2" style={{ marginTop: 22 }}>
+      <div className="grid grid-2" style={{ marginTop: "var(--space-3)" }}>
         <section className="panel-card">
           <h2 className="section-title">現実 x アバター比較グラフ</h2>
           <p className="muted">体重・筋肉量は初回測定、アバターは初期値からの変化率（%）です。体重の増加は筋肉の増加を意味しません。</p>
@@ -117,7 +106,7 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <div className="grid grid-2" style={{ marginTop: 22 }}>
+      <div className="grid grid-2" style={{ marginTop: "var(--space-3)" }}>
         <section className="panel-card">
           <h2 className="section-title">最近の筋トレ記録</h2>
           {dashboard.workouts.length === 0 && <div className="log-item">

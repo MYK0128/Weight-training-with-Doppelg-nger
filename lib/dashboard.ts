@@ -15,7 +15,7 @@ function deriveBadges(workoutCount: number, streak: number, level: number) {
   return badges;
 }
 
-export async function getDashboardData() {
+export async function getDashboardRecords() {
   const data = await apiGet<{
     workouts: Array<Omit<WorkoutLog, "date"> & { date: string }>;
     bodyMetrics: Array<Omit<BodyMetric, "date"> & { date: string }>;
@@ -24,6 +24,13 @@ export async function getDashboardData() {
   const workouts = data.workouts.map((row) => ({ ...row, date: new Date(row.date) }));
   const bodyMetrics = data.bodyMetrics.map((row) => ({ ...row, date: new Date(row.date) }));
 
+  return { workouts, bodyMetrics };
+}
+
+export async function getDashboardData() {
+  const records = await getDashboardRecords();
+  if (!records) return null;
+  const { workouts, bodyMetrics } = records;
   const latestMetric = bodyMetrics[bodyMetrics.length - 1];
   const firstMetric = bodyMetrics[0];
   // Derive current and historical views with the same rules, including existing profiles.
